@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -320,6 +320,311 @@
             color: #80ffb4;
             font-weight: 600;
         }
+        /* =================================================
+           TOURNAMENT POSTER — alvöru fótboltafagurfræði
+           ================================================= */
+        :root {
+            --pitch: #0d4d2f;
+            --pitch-dark: #062818;
+            --pitch-line: rgba(255,255,255,0.18);
+            --gold: #d4af37;
+            --gold-light: #f4d676;
+            --cream: #f5f1e8;
+            --card-red: #dc2626;
+            --card-yellow: #ffd200;
+            --ink: #0a0a0a;
+        }
+        .poster {
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--cream);
+            background: var(--pitch-dark);
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        /* Grass: alternating mowed stripes */
+        .poster::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    180deg,
+                    rgba(13,77,47,0.55) 0 60px,
+                    rgba(10,60,36,0.55) 60px 120px
+                ),
+                radial-gradient(ellipse at 50% -10%, rgba(212,175,55,0.18), transparent 50%),
+                linear-gradient(180deg, #0a3a22 0%, var(--pitch-dark) 80%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Subtle film grain */
+        .poster::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.85 0 0 0 0.05 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+            opacity: 0.7;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .poster > * { position: relative; z-index: 2; }
+        .display { font-family: 'Bebas Neue', 'Inter', sans-serif; letter-spacing: 0.02em; line-height: 0.95; }
+        .body-cream { color: var(--cream); }
+        .body-muted { color: rgba(245,241,232,0.65); }
+        .gold { color: var(--gold-light); }
+        .rule {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+            opacity: 0.6;
+        }
+        /* Top tournament bar */
+        .top-bar {
+            border-bottom: 1px solid rgba(212,175,55,0.25);
+            background: linear-gradient(180deg, rgba(0,0,0,0.4), transparent);
+            backdrop-filter: blur(4px);
+        }
+        /* Hero ticker */
+        .ticker {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.25em;
+            font-size: 0.8rem;
+            color: var(--gold-light);
+        }
+        .ticker .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+        /* Big hero number */
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(4rem, 14vw, 11rem);
+            line-height: 0.85;
+            letter-spacing: -0.01em;
+            color: var(--cream);
+            text-transform: uppercase;
+            text-shadow: 0 2px 0 rgba(0,0,0,0.5);
+        }
+        .hero-title .accent {
+            color: var(--gold-light);
+            -webkit-text-stroke: 1px var(--gold);
+        }
+        .hero-sub {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.15em;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            color: var(--cream);
+        }
+        /* CTA buttons */
+        .btn-gold {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.2em;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(180deg, var(--gold-light), var(--gold));
+            color: var(--ink);
+            border: 1px solid var(--gold-light);
+            border-radius: 2px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4), 0 0 30px rgba(212,175,55,0.25);
+            transition: transform 0.15s, box-shadow 0.15s;
+            cursor: pointer;
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.4), 0 0 40px rgba(212,175,55,0.4); }
+        .btn-ghost {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.2em;
+            font-size: 1.05rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            color: var(--cream);
+            border: 1px solid rgba(245,241,232,0.4);
+            border-radius: 2px;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .btn-ghost:hover { background: rgba(245,241,232,0.06); border-color: var(--cream); }
+        /* Tournament mode cards (trading-card style) */
+        .mode-card {
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35)),
+                linear-gradient(180deg, rgba(13,77,47,0.4), rgba(6,40,24,0.6));
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 4px;
+            padding: 1.75rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+        }
+        .mode-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--gold-light);
+            box-shadow: 0 20px 40px -20px rgba(212,175,55,0.4);
+        }
+        .mode-card .corner {
+            position: absolute;
+            top: 0.75rem; right: 0.75rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.18em;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: var(--gold);
+            color: var(--ink);
+            border-radius: 1px;
+        }
+        .mode-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            line-height: 1;
+            color: var(--gold-light);
+            -webkit-text-stroke: 1px var(--gold);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .mode-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.7rem;
+            letter-spacing: 0.05em;
+            color: var(--cream);
+            margin-bottom: 0.5rem;
+        }
+        .mode-tag {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.2em;
+            font-size: 0.7rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .mode-list {
+            list-style: none; padding: 0; margin: 0;
+            font-size: 0.85rem;
+            color: rgba(245,241,232,0.8);
+        }
+        .mode-list li {
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed rgba(212,175,55,0.15);
+            display: flex; justify-content: space-between;
+        }
+        .mode-list li:last-child { border-bottom: none; }
+        .mode-list .pts { color: var(--gold-light); font-weight: 700; }
+        /* Step rows like a fixture list */
+        .fixture-step {
+            display: flex; align-items: center; gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(90deg, rgba(0,0,0,0.4), rgba(0,0,0,0.15));
+            border-left: 3px solid var(--gold);
+            border-radius: 2px;
+            margin-bottom: 0.75rem;
+        }
+        .fixture-step .num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold-light);
+            line-height: 1;
+            min-width: 50px;
+        }
+        .fixture-step h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
+            font-size: 1.35rem;
+            color: var(--cream);
+            margin-bottom: 0.25rem;
+        }
+        .fixture-step p { font-size: 0.9rem; color: rgba(245,241,232,0.7); margin: 0; }
+        /* Trophy/ball icons via CSS */
+        .ball-icon {
+            display: inline-block;
+            width: 100px; height: 100px;
+            background:
+                radial-gradient(circle at 30% 30%, #fff 0%, #d9d9d9 30%, #888 80%, #555 100%);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset -10px -15px 30px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .ball-icon::before {
+            content: '';
+            position: absolute;
+            inset: 18%;
+            background:
+                conic-gradient(from 0deg, #1a1a1a 0deg 60deg, transparent 60deg 120deg, #1a1a1a 120deg 180deg, transparent 180deg 240deg, #1a1a1a 240deg 300deg, transparent 300deg);
+            border-radius: 50%;
+            opacity: 0.85;
+            mask: radial-gradient(circle, #000 35%, transparent 36%);
+            -webkit-mask: radial-gradient(circle, #000 35%, transparent 36%);
+        }
+        /* Pitch lines accent (corners) */
+        .corner-mark {
+            position: absolute;
+            width: 80px; height: 80px;
+            border: 2px solid rgba(212,175,55,0.4);
+        }
+        .corner-mark.tl { top: 1rem; left: 1rem; border-right: none; border-bottom: none; }
+        .corner-mark.tr { top: 1rem; right: 1rem; border-left: none; border-bottom: none; }
+        .corner-mark.bl { bottom: 1rem; left: 1rem; border-right: none; border-top: none; }
+        .corner-mark.br { bottom: 1rem; right: 1rem; border-left: none; border-top: none; }
+        /* Feature row */
+        .feature-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: rgba(212,175,55,0.2);
+            border: 1px solid rgba(212,175,55,0.2);
+        }
+        @media (min-width: 768px) { .feature-row { grid-template-columns: repeat(4, 1fr); } }
+        .feature-cell {
+            background: var(--pitch-dark);
+            padding: 1.5rem 1rem;
+            text-align: center;
+        }
+        .feature-cell .label {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.15em;
+            font-size: 1.1rem;
+            color: var(--gold-light);
+            margin-bottom: 0.25rem;
+        }
+        .feature-cell .desc { font-size: 0.8rem; color: rgba(245,241,232,0.6); }
+        /* CTA card */
+        .cta-card {
+            background:
+                linear-gradient(135deg, rgba(212,175,55,0.15), transparent 60%),
+                linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+            border: 1px solid var(--gold);
+            border-radius: 2px;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        /* Section header */
+        .section-eyebrow {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.4em;
+            font-size: 0.8rem;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 1;
+            color: var(--cream);
+            letter-spacing: 0.01em;
+            margin-bottom: 0.75rem;
+        }
         /* Loading spinner */
         .spinner {
             display: inline-block;
@@ -341,173 +646,205 @@
 
 <!-- ===================== LANDING / LOGIN VIEW ===================== -->
 <div id="view-login" class="view active">
-    <div class="pitch-bg min-h-screen">
+    <div class="poster">
+        <!-- Top bar -->
+        <div class="top-bar px-6 py-4">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="ticker">
+                    <span class="dot"></span>
+                    <span>FIFA WORLD CUP 26 · BNA · MEX · CAN</span>
+                </div>
+                <button onclick="showView('login-email')" class="text-cream text-xs tracking-widest" style="font-family:'Bebas Neue',sans-serif;letter-spacing:0.2em;color:var(--gold-light)">
+                    SKRÁ INN →
+                </button>
+            </div>
+        </div>
+
         <!-- Hero -->
-        <section class="relative px-4 pt-16 pb-12 text-center">
-            <div class="max-w-3xl mx-auto relative z-10">
-                <div class="ball-spin text-7xl md:text-8xl mb-6">⚽</div>
-                <div class="stat-pill mb-4">🏆 11. júní – 19. júlí 2026 · 48 lið · 104 leikir</div>
-                <h1 class="text-5xl md:text-7xl font-black accent-cyan mb-3 hero-glow">HM 2026</h1>
-                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Tippleikurinn</h2>
-                <p class="text-gray-300 text-lg md:text-xl max-w-xl mx-auto mb-8">
-                    Stofnaðu deild fyrir vinnustaðinn, vinahópinn eða fjölskylduna.
-                    Þrjár tipp-aðferðir, sjálfvirk úrslit frá ESPN, og rauntíma stigatafla.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-                    <button onclick="showView('login-email')" class="btn-primary py-4 px-8 text-lg rounded-lg glow-cyan flex-1">
-                        ⚡ Byrja að tippa
-                    </button>
-                    <a href="#hvernig" class="btn-secondary py-4 px-8 text-lg rounded-lg flex-1 flex items-center justify-center">
-                        Sjá hvernig það virkar ↓
-                    </a>
+        <section class="relative px-6 pt-20 pb-24">
+            <div class="corner-mark tl hidden md:block"></div>
+            <div class="corner-mark tr hidden md:block"></div>
+            <div class="max-w-6xl mx-auto">
+                <div class="grid md:grid-cols-12 gap-8 items-center">
+                    <div class="md:col-span-8">
+                        <div class="ticker mb-6">
+                            <span class="dot"></span><span>11. JÚN — 19. JÚL 2026</span><span class="dot"></span><span>48 LIÐ</span><span class="dot"></span><span>104 LEIKIR</span>
+                        </div>
+                        <h1 class="hero-title mb-2">HM 2026</h1>
+                        <h1 class="hero-title mb-6"><span class="accent">TIPPLEIKURINN</span></h1>
+                        <div class="rule mb-6 max-w-md"></div>
+                        <p class="body-cream text-lg md:text-xl max-w-xl mb-10" style="line-height:1.6">
+                            Stofnaðu deild fyrir vinnustaðinn, vinahópinn eða fjölskylduna.
+                            <span class="gold">Þrjár tipp-aðferðir.</span> Sjálfvirk úrslit. Engin lykilorð.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="showView('login-email')" class="btn-gold">BYRJA AÐ TIPPA</button>
+                            <a href="#adferdir" class="btn-ghost">SJÁ AÐFERÐIR ↓</a>
+                        </div>
+                    </div>
+                    <div class="md:col-span-4 hidden md:flex items-center justify-center">
+                        <div class="ball-icon"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Þrjár tipp-aðferðir -->
-        <section id="adferdir" class="scroll-mt max-w-5xl mx-auto px-4 py-12">
-            <div class="text-center mb-10">
-                <h3 class="text-3xl md:text-4xl font-black text-white mb-3">Veldu þína tipp-aðferð</h3>
-                <p class="text-gray-400">Hver deild getur notað sína eigin reglu — engin "ein stærð passar öllum"</p>
-            </div>
-            <div class="grid md:grid-cols-3 gap-5">
-                <div class="feature-card">
-                    <div class="badge">Klassískt</div>
-                    <div class="text-4xl mb-3">🎯</div>
-                    <h4 class="text-xl font-black accent-cyan mb-2">1 X 2</h4>
-                    <p class="text-sm text-gray-300 mb-4">Veldu sigurvegara eða jafntefli. Hentar fyrir alla.</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>· Hópaleikir: <span class="text-white font-bold">1 stig</span></li>
-                        <li>· 16-liða úrslit: <span class="text-white font-bold">2 stig</span></li>
-                        <li>· Fjórðungs/undanúrslit: <span class="text-white font-bold">3-4 stig</span></li>
-                        <li>· Úrslit / 3. sæti: <span class="text-white font-bold">5 stig</span></li>
-                    </ul>
+        <section id="adferdir" class="scroll-mt px-6 py-20" style="background:linear-gradient(180deg, transparent, rgba(0,0,0,0.3))">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <span class="section-eyebrow">ÞRJÁR LEIÐIR · ÞÍN DEILD VELUR</span>
+                    <h2 class="section-title">VELDU TIPP-AÐFERÐ</h2>
+                    <p class="body-muted max-w-2xl mx-auto">Hver deild getur notað sína eigin reglu — engin "ein stærð passar öllum"</p>
                 </div>
-                <div class="feature-card">
-                    <div class="badge">Krefjandi</div>
-                    <div class="text-4xl mb-3">🥅</div>
-                    <h4 class="text-xl font-black accent-cyan mb-2">Markatala</h4>
-                    <p class="text-sm text-gray-300 mb-4">Spáðu nákvæmu skori. Meira í húfi, meiri umbun.</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>· Rétt skor: <span class="text-white font-bold">5 stig</span></li>
-                        <li>· Úrslit + önnur markatala: <span class="text-white font-bold">4 stig</span></li>
-                        <li>· Rétt úrslit: <span class="text-white font-bold">3 stig</span></li>
-                        <li>· Önnur markatala rétt: <span class="text-white font-bold">1 stig</span></li>
-                        <li class="pt-1 text-cyan-400 font-semibold">· Tvöfalt í útsláttarkeppni</li>
-                    </ul>
-                </div>
-                <div class="feature-card">
-                    <div class="badge">Nýtt</div>
-                    <div class="text-4xl mb-3">📈</div>
-                    <h4 class="text-xl font-black accent-cyan mb-2">Stuðlamargfaldari</h4>
-                    <p class="text-sm text-gray-300 mb-4">1X2 spá margfölduð með veðbankastuðlum. Upset-spár fá margfalt meira.</p>
-                    <ul class="text-xs text-gray-400 space-y-1">
-                        <li>· Stuðlar læstir 10 mín fyrir leik</li>
-                        <li>· Líka ólíklegt → margfalt fleiri stig</li>
-                        <li>· Hámark <span class="text-white font-bold">10x</span> margfaldari</li>
-                        <li>· Sótt sjálfkrafa frá veðbönkum</li>
-                    </ul>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="mode-card">
+                        <span class="corner">KLASSÍSKT</span>
+                        <span class="mode-num">01</span>
+                        <span class="mode-tag">— GAMLA GÓÐA —</span>
+                        <h3 class="mode-title">1 · X · 2</h3>
+                        <p class="body-muted text-sm mb-5">Veldu sigurvegara eða jafntefli. Hentar fyrir alla — einfalt og fljótlegt.</p>
+                        <ul class="mode-list">
+                            <li><span>Hópaleikir</span><span class="pts">1 stig</span></li>
+                            <li><span>16-liða úrslit</span><span class="pts">2 stig</span></li>
+                            <li><span>Fjórðungsúrslit</span><span class="pts">3 stig</span></li>
+                            <li><span>Undanúrslit</span><span class="pts">4 stig</span></li>
+                            <li><span>Úrslit / 3. sæti</span><span class="pts">5 stig</span></li>
+                        </ul>
+                    </div>
+                    <div class="mode-card">
+                        <span class="corner">KREFJANDI</span>
+                        <span class="mode-num">02</span>
+                        <span class="mode-tag">— ATVINNUMENN —</span>
+                        <h3 class="mode-title">MARKATALA</h3>
+                        <p class="body-muted text-sm mb-5">Spáðu nákvæmu skori. Meira í húfi — meiri umbun fyrir djarfar spár.</p>
+                        <ul class="mode-list">
+                            <li><span>Rétt skor</span><span class="pts">5 stig</span></li>
+                            <li><span>Úrslit + ein markatala</span><span class="pts">4 stig</span></li>
+                            <li><span>Rétt úrslit</span><span class="pts">3 stig</span></li>
+                            <li><span>Ein markatala rétt</span><span class="pts">1 stig</span></li>
+                            <li><span class="gold">Útsláttarkeppni</span><span class="pts">×2</span></li>
+                        </ul>
+                    </div>
+                    <div class="mode-card">
+                        <span class="corner">NÝTT</span>
+                        <span class="mode-num">03</span>
+                        <span class="mode-tag">— ÁHÆTTAN BORGAR SIG —</span>
+                        <h3 class="mode-title">STUÐLA­MARGFALDARI</h3>
+                        <p class="body-muted text-sm mb-5">1X2 spá margfölduð með veðbankastuðlum. Upset-spár fá margfalt meira.</p>
+                        <ul class="mode-list">
+                            <li><span>Líklegasti sigur</span><span class="pts">~1×</span></li>
+                            <li><span>Jöfn úrslit</span><span class="pts">3-5×</span></li>
+                            <li><span>Stór upset</span><span class="pts">allt að 10×</span></li>
+                            <li><span class="gold">Stuðlar læstir</span><span class="pts">10 mín fyrir</span></li>
+                            <li><span class="gold">Sjálfkrafa frá veðbönkum</span><span class="pts">✓</span></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Hvernig virkar þetta -->
-        <section id="hvernig" class="scroll-mt max-w-3xl mx-auto px-4 py-12">
-            <div class="text-center mb-10">
-                <h3 class="text-3xl md:text-4xl font-black text-white mb-3">Hvernig virkar þetta?</h3>
-                <p class="text-gray-400">Þrjú einföld skref</p>
-            </div>
-            <div class="space-y-5">
-                <div class="bg-glass rounded-xl p-5 flex items-start gap-4">
-                    <span class="step-num">1</span>
-                    <div>
-                        <h4 class="font-black text-white mb-1">Búðu til deild</h4>
-                        <p class="text-sm text-gray-400">Veldu nafn, tipp-aðferð og 4 stafa PIN. Þú færð 6 stafa deildarkóða sem þú getur deilt.</p>
-                    </div>
+        <section id="hvernig" class="scroll-mt px-6 py-20">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <span class="section-eyebrow">3 SKREF · 30 SEKÚNDUR</span>
+                    <h2 class="section-title">HVERNIG VIRKAR ÞETTA</h2>
                 </div>
-                <div class="bg-glass rounded-xl p-5 flex items-start gap-4">
-                    <span class="step-num">2</span>
-                    <div>
-                        <h4 class="font-black text-white mb-1">Bjóddu vinum í deild</h4>
-                        <p class="text-sm text-gray-400">Þeir slá inn deildarkóðann og skrá sig með netfanginu sínu — engin lykilorð.</p>
+                <div>
+                    <div class="fixture-step">
+                        <span class="num">01</span>
+                        <div>
+                            <h4>STOFNAÐU DEILD</h4>
+                            <p>Veldu nafn, tipp-aðferð og 4 stafa stjórnandakóða. Þú færð 6 stafa deildarkóða til að deila.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="bg-glass rounded-xl p-5 flex items-start gap-4">
-                    <span class="step-num">3</span>
-                    <div>
-                        <h4 class="font-black text-white mb-1">Tippið og fylgist með</h4>
-                        <p class="text-sm text-gray-400">Tippið á alla 104 leikina. Niðurstöður sækjast sjálfkrafa frá ESPN. Stigatafla uppfærist í rauntíma.</p>
+                    <div class="fixture-step">
+                        <span class="num">02</span>
+                        <div>
+                            <h4>BJÓDDU VINUNUM</h4>
+                            <p>Þeir slá inn kóðann og fá tengil í tölvupósti — engin lykilorð, engin sms, engin vesen.</p>
+                        </div>
+                    </div>
+                    <div class="fixture-step">
+                        <span class="num">03</span>
+                        <div>
+                            <h4>TIPPAÐ — STIGATAFLAN GERIST</h4>
+                            <p>Tippið á alla 104 leikina. Niðurstöður sækjast sjálfkrafa frá ESPN. Stigatafla uppfærist í rauntíma.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Eiginleikar -->
-        <section class="max-w-4xl mx-auto px-4 py-12">
-            <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="p-4">
-                    <div class="text-3xl mb-2">⚡</div>
-                    <div class="text-sm font-bold text-white">Sjálfvirkar niðurstöður</div>
-                    <div class="text-xs text-gray-500">Sækjum frá ESPN á 5 mín fresti</div>
-                </div>
-                <div class="p-4">
-                    <div class="text-3xl mb-2">🔐</div>
-                    <div class="text-sm font-bold text-white">Magic-link login</div>
-                    <div class="text-xs text-gray-500">Engin lykilorð, engin vesen</div>
-                </div>
-                <div class="p-4">
-                    <div class="text-3xl mb-2">📱</div>
-                    <div class="text-sm font-bold text-white">Virkar í símanum</div>
-                    <div class="text-xs text-gray-500">Tippaðu hvar sem er</div>
-                </div>
-                <div class="p-4">
-                    <div class="text-3xl mb-2">🆓</div>
-                    <div class="text-sm font-bold text-white">Algjörlega ókeypis</div>
-                    <div class="text-xs text-gray-500">Engar áskriftir</div>
+        <section class="px-6 py-12">
+            <div class="max-w-5xl mx-auto">
+                <div class="feature-row">
+                    <div class="feature-cell">
+                        <div class="label">SJÁLFVIRKT</div>
+                        <div class="desc">Niðurstöður frá ESPN á 5 mín fresti</div>
+                    </div>
+                    <div class="feature-cell">
+                        <div class="label">MAGIC LINK</div>
+                        <div class="desc">Engin lykilorð, engin nýskráning</div>
+                    </div>
+                    <div class="feature-cell">
+                        <div class="label">SÍMANUM</div>
+                        <div class="desc">Tippaðu hvar sem er, hvenær sem er</div>
+                    </div>
+                    <div class="feature-cell">
+                        <div class="label">ÓKEYPIS</div>
+                        <div class="desc">Engar áskriftir, engar auglýsingar</div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- CTA -->
-        <section class="max-w-2xl mx-auto px-4 py-12 text-center">
-            <div class="bg-glass rounded-2xl p-8 glow-cyan">
-                <div class="text-5xl mb-4">⚽</div>
-                <h3 class="text-2xl md:text-3xl font-black text-white mb-3">Tilbúin/n í HM 2026?</h3>
-                <p class="text-gray-400 mb-6">Stofnaðu deild núna og bjóddu vinunum. Tekur 30 sekúndur.</p>
-                <button onclick="showView('login-email')" class="btn-primary py-4 px-10 text-lg rounded-lg glow-cyan">
-                    ⚡ Skrá mig inn
-                </button>
+        <section class="px-6 py-20">
+            <div class="max-w-2xl mx-auto">
+                <div class="cta-card">
+                    <span class="section-eyebrow">KICK-OFF · 11. JÚNÍ 2026</span>
+                    <h2 class="section-title mb-4">TILBÚIN/N?</h2>
+                    <p class="body-muted mb-8 max-w-md mx-auto">Stofnaðu deild núna og bjóddu liðinu þínu. Tekur 30 sekúndur.</p>
+                    <button onclick="showView('login-email')" class="btn-gold">SKRÁ MIG INN →</button>
+                </div>
+                <p class="mt-12 text-center text-xs body-muted" style="letter-spacing:0.2em;font-family:'Bebas Neue',sans-serif">
+                    FIFA WORLD CUP 26 · USA · MEXICO · CANADA · 48 NATIONS
+                </p>
             </div>
-            <p class="mt-8 text-xs text-gray-600">Heimsbikarinn 2026 · BNA · Mexíkó · Kanada · 11. júní – 19. júlí</p>
         </section>
     </div>
 </div>
 
 <!-- ===================== EMAIL LOGIN VIEW ===================== -->
 <div id="view-login-email" class="view">
-    <div class="pitch-bg min-h-screen flex items-center justify-center px-4">
-        <div class="w-full max-w-sm relative z-10">
-            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
-                ← Til baka
+    <div class="poster min-h-screen flex items-center justify-center px-6">
+        <div class="w-full max-w-md">
+            <button onclick="showView('login')" class="text-xs mb-8" style="font-family:'Bebas Neue',sans-serif;letter-spacing:0.25em;color:var(--gold-light)">
+                ← TIL BAKA
             </button>
-            <div class="text-center mb-8">
-                <div class="text-5xl mb-3">⚽</div>
-                <h2 class="text-2xl font-black accent-cyan mb-2">Skrá inn</h2>
-                <p class="text-sm text-gray-400">Sláðu inn netfangið þitt og við sendum þér tengil til að skrá þig inn — engin lykilorð.</p>
+            <div class="mb-8">
+                <span class="section-eyebrow">SKRÁNING</span>
+                <h2 class="section-title">SKRÁ INN</h2>
+                <div class="rule mb-6 max-w-xs"></div>
+                <p class="body-muted text-sm">Sláðu inn netfangið þitt — við sendum þér tengil til að skrá þig inn. <span class="gold">Engin lykilorð.</span></p>
             </div>
-            <div id="email-form" class="space-y-4">
+            <div id="email-form" class="space-y-5">
                 <div>
-                    <label class="text-xs text-gray-400 mb-1 block">Netfang</label>
-                    <input id="auth-email" type="email" class="input-field" placeholder="nafn@example.is">
+                    <label class="block mb-2" style="font-family:'Bebas Neue',sans-serif;letter-spacing:0.2em;font-size:0.75rem;color:var(--gold)">NETFANG</label>
+                    <input id="auth-email" type="email" class="w-full px-4 py-3" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);color:var(--cream);font-family:'Inter',sans-serif;border-radius:2px" placeholder="nafn@example.is">
                 </div>
                 <p id="auth-error" class="text-red-400 text-sm hidden"></p>
-                <button id="send-link-btn" onclick="sendMagicLink()" class="btn-primary w-full py-3 rounded-lg">Senda tengil →</button>
+                <button id="send-link-btn" onclick="sendMagicLink()" class="btn-gold w-full">SENDA TENGIL →</button>
             </div>
             <div id="email-sent" class="hidden text-center">
-                <div class="text-5xl mb-4">📬</div>
-                <h3 class="font-black text-white text-lg mb-2">Tengill sendur!</h3>
-                <p class="text-sm text-gray-400 mb-2">Athugaðu netfangið þitt og smelltu á tengilinn.</p>
-                <p class="text-xs text-gray-600">Athugaðu líka "spam" möppuna ef þú sérð hann ekki.</p>
+                <div class="ball-icon mx-auto mb-6" style="width:60px;height:60px"></div>
+                <h3 class="section-title" style="font-size:2rem">TENGILL SENDUR</h3>
+                <div class="rule mb-6 max-w-xs mx-auto"></div>
+                <p class="body-cream text-sm mb-2">Athugaðu netfangið þitt og smelltu á tengilinn.</p>
+                <p class="body-muted text-xs">Athugaðu líka "spam" möppuna ef þú sérð hann ekki.</p>
             </div>
         </div>
     </div>
