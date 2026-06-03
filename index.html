@@ -1064,10 +1064,15 @@ async function verifyPin() {
 }
 
 async function renderAdminPanel() {
+    const user = getCurrentUser();
     const container = document.getElementById('admin-container');
     container.innerHTML = loadingHtml('Hleður stjórnborð...');
 
-    const results = await dbGetResults();
+    const [results, { members, byUser }, league] = await Promise.all([
+        dbGetResults(),
+        dbGetAllPredictions(user.leagueCode),
+        dbGetLeague(user.leagueCode),
+    ]);
 
     const groups = {};
     ALL_MATCHES.forEach(m => {
@@ -1075,7 +1080,32 @@ async function renderAdminPanel() {
         groups[m.g].push(m);
     });
 
-    let html = `<div class="bg-glass-dark rounded-lg p-3 mb-4 text-xs text-gray-400">
+    // Yfirlit yfir meðlimi og spár
+    const totalMatches = ALL_MATCHES.length;
+    let memberRows = '';
+    members.forEach(m => {
+        const preds = byUser[m.id] || {};
+        const count = Object.keys(preds).length;
+        const pct = Math.round((count / totalMatches) * 100);
+        const isFull = count === totalMatches;
+        memberRows += `<div class="flex items-center justify-between gap-2 py-2 px-3 border-b border-cyan-900/20 text-sm">
+            <span class="font-semibold truncate flex-1">${m.name}</span>
+            <span class="text-xs text-gray-400">${count} / ${totalMatches}</span>
+            <div class="w-20 h-2 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full ${isFull?'bg-green-400':'bg-cyan-400'}" style="width:${pct}%"></div>
+            </div>
+        </div>`;
+    });
+
+    let html = `<div class="bg-glass rounded-xl mb-4 overflow-hidden">
+        <div class="group-header flex items-center justify-between">
+            <span>Þátttakendur (${members.length})</span>
+            <span class="text-xs opacity-70 normal-case tracking-normal">Kóði: ${user.leagueCode}</span>
+        </div>
+        ${memberRows || '<div class="p-4 text-sm text-gray-500 text-center">Engir þátttakendur ennþá</div>'}
+    </div>
+
+    <div class="bg-glass-dark rounded-lg p-3 mb-4 text-xs text-gray-400">
         <span class="accent-cyan font-bold">Stigakerfi:</span>
         Hópar = 1 stig · 16-liða úrslitaleikir = 2 · Fjórðungsúrslit = 3 · Undanúrslit = 4 · Úrslit/3. sæti = 5
     </div>`;
