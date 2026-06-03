@@ -548,22 +548,6 @@
         .ball-icon {
             display: inline-block;
             width: 100px; height: 100px;
-            background:
-                radial-gradient(circle at 30% 30%, #fff 0%, #d9d9d9 30%, #888 80%, #555 100%);
-            border-radius: 50%;
-            position: relative;
-            box-shadow: inset -10px -15px 30px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.5);
-        }
-        .ball-icon::before {
-            content: '';
-            position: absolute;
-            inset: 18%;
-            background:
-                conic-gradient(from 0deg, #1a1a1a 0deg 60deg, transparent 60deg 120deg, #1a1a1a 120deg 180deg, transparent 180deg 240deg, #1a1a1a 240deg 300deg, transparent 300deg);
-            border-radius: 50%;
-            opacity: 0.85;
-            mask: radial-gradient(circle, #000 35%, transparent 36%);
-            -webkit-mask: radial-gradient(circle, #000 35%, transparent 36%);
         }
         /* Pitch lines accent (corners) */
         .corner-mark {
@@ -683,7 +667,47 @@
                         </div>
                     </div>
                     <div class="md:col-span-4 hidden md:flex items-center justify-center">
-                        <div class="ball-icon"></div>
+                        <svg viewBox="0 0 200 200" width="220" height="220" style="filter:drop-shadow(0 20px 40px rgba(0,0,0,0.6)) drop-shadow(0 0 40px rgba(212,175,55,0.15))">
+                          <defs>
+                            <radialGradient id="ballGrad" cx="38%" cy="32%" r="65%">
+                              <stop offset="0%" stop-color="#ffffff"/>
+                              <stop offset="55%" stop-color="#e8e8e8"/>
+                              <stop offset="100%" stop-color="#aaaaaa"/>
+                            </radialGradient>
+                            <radialGradient id="shineGrad" cx="35%" cy="28%" r="35%">
+                              <stop offset="0%" stop-color="rgba(255,255,255,0.8)"/>
+                              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                            </radialGradient>
+                            <clipPath id="ballClip">
+                              <circle cx="100" cy="100" r="94"/>
+                            </clipPath>
+                          </defs>
+                          <!-- Base sphere -->
+                          <circle cx="100" cy="100" r="94" fill="url(#ballGrad)" stroke="#999" stroke-width="1"/>
+                          <!-- Classic soccer ball patches (pentagons/hexagons) -->
+                          <g clip-path="url(#ballClip)" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5" stroke-linejoin="round">
+                            <!-- Centre pentagon -->
+                            <polygon points="100,62 118,75 111,96 89,96 82,75"/>
+                            <!-- Top -->
+                            <polygon points="100,10 114,22 109,40 91,40 86,22"/>
+                            <!-- Top-right -->
+                            <polygon points="148,38 158,54 148,68 130,64 126,46"/>
+                            <!-- Right -->
+                            <polygon points="172,90 178,108 166,120 150,112 150,94"/>
+                            <!-- Bottom-right -->
+                            <polygon points="154,148 144,162 126,160 120,142 134,132"/>
+                            <!-- Bottom -->
+                            <polygon points="100,172 86,184 70,174 72,156 114,156 128,174"/>
+                            <!-- Bottom-left -->
+                            <polygon points="46,148 36,162 54,160 60,142 80,132"/>
+                            <!-- Left -->
+                            <polygon points="28,90 22,108 34,120 50,112 50,94"/>
+                            <!-- Top-left -->
+                            <polygon points="52,38 42,54 52,68 70,64 74,46"/>
+                          </g>
+                          <!-- Shine -->
+                          <circle cx="100" cy="100" r="94" fill="url(#shineGrad)"/>
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -840,7 +864,24 @@
                 <button id="send-link-btn" onclick="sendMagicLink()" class="btn-gold w-full">SENDA TENGIL →</button>
             </div>
             <div id="email-sent" class="hidden text-center">
-                <div class="ball-icon mx-auto mb-6" style="width:60px;height:60px"></div>
+                <svg viewBox="0 0 200 200" width="70" height="70" class="mx-auto mb-6" style="filter:drop-shadow(0 4px 12px rgba(212,175,55,0.3))">
+                  <defs>
+                    <radialGradient id="bg2" cx="38%" cy="32%" r="65%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#aaa"/></radialGradient>
+                    <clipPath id="bc2"><circle cx="100" cy="100" r="94"/></clipPath>
+                  </defs>
+                  <circle cx="100" cy="100" r="94" fill="url(#bg2)" stroke="#999" stroke-width="1"/>
+                  <g clip-path="url(#bc2)" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5" stroke-linejoin="round">
+                    <polygon points="100,62 118,75 111,96 89,96 82,75"/>
+                    <polygon points="100,10 114,22 109,40 91,40 86,22"/>
+                    <polygon points="148,38 158,54 148,68 130,64 126,46"/>
+                    <polygon points="172,90 178,108 166,120 150,112 150,94"/>
+                    <polygon points="154,148 144,162 126,160 120,142 134,132"/>
+                    <polygon points="100,172 86,184 70,174 72,156 114,156 128,174"/>
+                    <polygon points="46,148 36,162 54,160 60,142 80,132"/>
+                    <polygon points="28,90 22,108 34,120 50,112 50,94"/>
+                    <polygon points="52,38 42,54 52,68 70,64 74,46"/>
+                  </g>
+                </svg>
                 <h3 class="section-title" style="font-size:2rem">TENGILL SENDUR</h3>
                 <div class="rule mb-6 max-w-xs mx-auto"></div>
                 <p class="body-cream text-sm mb-2">Athugaðu netfangið þitt og smelltu á tengilinn.</p>
