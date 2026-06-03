@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HM 2026 Tippleikur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #0a0a1f;
+            background-image: radial-gradient(circle at 50% 20%, #1a1a3a, #0a0a1f 70%);
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+        .accent-cyan { color: #00ffff; }
+        .glow-cyan {
+            box-shadow: 0 0 8px rgba(0,255,255,0.4), 0 0 20px rgba(0,255,255,0.15);
+        }
+        .glow-cyan-sm {
+            box-shadow: 0 0 6px rgba(0,255,255,0.35);
+        }
+        .bg-glass {
+            background-color: rgba(26,26,58,0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,255,255,0.2);
+        }
+        .bg-glass-dark {
+            background-color: rgba(10,10,31,0.85);
+            border: 1px solid rgba(0,255,255,0.15);
+        }
+        /* Navigation */
+        .nav-link {
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 2px;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #00ffff;
+            border-bottom-color: #00ffff;
+            text-shadow: 0 0 8px rgba(0,255,255,0.6);
+        }
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(0,255,255,0.05));
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            transition: all 0.2s;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .btn-primary:hover {
+            background: rgba(0,255,255,0.25);
+            box-shadow: 0 0 12px rgba(0,255,255,0.5);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            transition: all 0.2s;
+            font-family: 'Exo 2', sans-serif;
+        }
+        .btn-secondary:hover {
+            border-color: rgba(0,255,255,0.5);
+            color: #00ffff;
+        }
+        /* Prediction buttons */
+        .pred-btn {
+            width: 40px; height: 34px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.04);
+            color: #aaa;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        .pred-btn:hover {
+            border-color: rgba(0,255,255,0.5);
+            color: #00ffff;
+        }
+        .pred-btn.selected-1 {
+            background: rgba(0,255,255,0.2);
+            border-color: #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 8px rgba(0,255,255,0.4);
+        }
+        .pred-btn.selected-X {
+            background: rgba(255,200,0,0.15);
+            border-color: #ffc800;
+            color: #ffc800;
+            box-shadow: 0 0 8px rgba(255,200,0,0.3);
+        }
+        .pred-btn.selected-2 {
+            background: rgba(255,80,180,0.15);
+            border-color: #ff50b4;
+            color: #ff50b4;
+            box-shadow: 0 0 8px rgba(255,80,180,0.3);
+        }
+        /* Result correct/wrong */
+        .result-correct {
+            background: rgba(0,255,100,0.12);
+            border-left: 3px solid #00ff64;
+        }
+        .result-wrong {
+            background: rgba(255,60,60,0.1);
+            border-left: 3px solid #ff3c3c;
+        }
+        /* Input fields */
+        .input-field {
+            background: rgba(10,10,31,0.8);
+            border: 1px solid rgba(0,255,255,0.25);
+            color: #e0e0e0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            width: 100%;
+            font-family: 'Exo 2', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 8px rgba(0,255,255,0.2);
+        }
+        .input-field::placeholder { color: #555; }
+        /* Code display */
+        .league-code-box {
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0,255,255,0.8);
+        }
+        /* Match card */
+        .match-card {
+            border-bottom: 1px solid rgba(0,255,255,0.08);
+            padding: 10px 12px;
+            transition: background 0.15s;
+        }
+        .match-card:hover { background: rgba(0,255,255,0.03); }
+        /* Prediction badge */
+        .pred-badge {
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        .pred-badge-1 { background: rgba(0,255,255,0.15); color: #00ffff; border: 1px solid rgba(0,255,255,0.3); }
+        .pred-badge-X { background: rgba(255,200,0,0.15); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
+        .pred-badge-2 { background: rgba(255,80,180,0.15); color: #ff50b4; border: 1px solid rgba(255,80,180,0.3); }
+        /* View transitions */
+        .view { display: none; }
+        .view.active { display: block; }
+        /* Admin result btns */
+        .res-btn {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.04);
+            color: #aaa;
+            cursor: pointer;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+        .res-btn:hover { border-color: rgba(0,255,255,0.5); color: #00ffff; }
+        .res-btn.set { background: rgba(0,255,255,0.2); border-color: #00ffff; color: #00ffff; }
+        /* Leaderboard */
+        .lb-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .lb-row.me { background: rgba(0,255,255,0.07); border-left: 3px solid #00ffff; }
+        /* Group header */
+        .group-header {
+            background: linear-gradient(90deg, rgba(0,255,255,0.1), transparent);
+            border-left: 3px solid #00ffff;
+            padding: 6px 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            color: #00ffff;
+            text-transform: uppercase;
+        }
+        /* Pin dots */
+        .pin-display {
+            font-size: 1.5rem;
+            letter-spacing: 0.4em;
+            color: #00ffff;
+        }
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(0,255,255,0.15);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.3s;
+            z-index: 999;
+            pointer-events: none;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a1f; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,255,255,0.3); border-radius: 3px; }
+        /* Mobile nav */
+        @media (max-width: 640px) {
+            .nav-label { display: none; }
+        }
+        .round-separator {
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(0,255,255,0.08);
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            color: #666;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(0,255,255,0.2);
+            border-top-color: #00ffff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<!-- ===================== LOGIN VIEW ===================== -->
+<div id="view-login" class="view active">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-sm text-center">
+            <div class="text-7xl mb-4">🏆</div>
+            <h1 class="text-4xl font-black accent-cyan mb-1" style="text-shadow: 0 0 20px rgba(0,255,255,0.5)">HM 2026</h1>
+            <h2 class="text-2xl font-bold text-white mb-2">Tippleikur</h2>
+            <p class="text-gray-400 mb-10 text-sm">Búðu til deild fyrir vinnustaðinn þinn</p>
+            <div class="space-y-4">
+                <button onclick="showView('create')" class="btn-primary w-full py-4 text-lg rounded-lg glow-cyan">
+                    ⚡ Búa til deild
+                </button>
+                <button onclick="showView('join')" class="btn-secondary w-full py-4 text-lg rounded-lg">
+                    🔗 Ganga í deild
+                </button>
+            </div>
+            <p class="mt-8 text-xs text-gray-600">Heimsbikarinn 2026 · 11. júní – 19. júlí</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== CREATE VIEW ===================== -->
+<div id="view-create" class="view">
+    <div class="min-h-screen flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-sm">
+            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
+                ← Til baka
+            </button>
+            <h2 class="text-2xl font-black accent-cyan mb-6">Búa til deild</h2>
+            <div id="create-form" class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nafn deildar</label>
+                    <input id="c-league-name" type="text" class="input-field" placeholder="T.d. Vinnustaður 2026">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Þitt nafn</label>
+                    <input id="c-user-name" type="text" class="input-field" placeholder="Fullt nafn">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Stjórnandakóði (4 tölustafir)</label>
+                    <input id="c-pin" type="password" inputmode="numeric" maxlength="4" class="input-field" placeholder="····">
+                </div>
+                <button id="create-btn" onclick="createLeague()" class="btn-primary w-full py-3 rounded-lg mt-2">Búa til</button>
+            </div>
+            <div id="create-success" class="hidden text-center">
+                <p class="text-gray-400 text-sm mb-3">Deild stofnuð! Deildarstýringarkóðinn þinn er:</p>
+                <div class="bg-glass rounded-xl p-6 mb-4 glow-cyan">
+                    <div id="show-code" class="league-code-box"></div>
+                </div>
+                <p class="text-xs text-gray-500 mb-4">Deildu þessum kóða með vinnufélögum þínum</p>
+                <button onclick="copyCode()" class="btn-secondary w-full py-2 rounded-lg mb-3">📋 Afrita kóða</button>
+                <button onclick="proceedToApp()" class="btn-primary w-full py-3 rounded-lg">Halda áfram →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== JOIN VIEW ===================== -->
+<div id="view-join" class="view">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-sm">
+            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
+                ← Til baka
+            </button>
+            <h2 class="text-2xl font-black accent-cyan mb-6">Ganga í deild</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Deildarstýringarkóði</label>
+                    <input id="j-code" type="text" maxlength="6" class="input-field" placeholder="XXXXXX"
+                        oninput="this.value=this.value.toUpperCase()" style="letter-spacing:0.2em; font-size:1.2rem; text-align:center">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Þitt nafn</label>
+                    <input id="j-user-name" type="text" class="input-field" placeholder="Fullt nafn">
+                </div>
+                <p id="join-error" class="text-red-400 text-sm hidden"></p>
+                <button id="join-btn" onclick="joinLeague()" class="btn-primary w-full py-3 rounded-lg">Ganga í</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="view-app" class="view">
+    <!-- Header -->
+    <header class="bg-glass sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🏆</span>
+                <div>
+                    <div id="hdr-league" class="text-xs text-gray-400 leading-tight"></div>
+                    <div id="hdr-user" class="text-sm font-bold accent-cyan leading-tight"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1">
+                <nav class="flex items-center gap-1 mr-2">
+                    <button onclick="showSection('spar')" id="nav-spar" class="nav-link text-xs px-2 py-1 text-gray-300">
+                        ⚽ <span class="nav-label">Spár</span>
+                    </button>
+                    <button onclick="showSection('stigatafla')" id="nav-stigatafla" class="nav-link text-xs px-2 py-1 text-gray-300">
+                        🏅 <span class="nav-label">Stigatafla</span>
+                    </button>
+                    <button onclick="showSection('dagskra')" id="nav-dagskra" class="nav-link text-xs px-2 py-1 text-gray-300">
+                        📅 <span class="nav-label">Dagskrá</span>
+                    </button>
+                    <button onclick="showSection('stjorn')" id="nav-stjorn" class="nav-link text-xs px-2 py-1 text-gray-300">
+                        ⚙️ <span class="nav-label">Stjórnborð</span>
+                    </button>
+                </nav>
+                <button onclick="logout()" class="text-xs text-gray-500 hover:text-red-400 transition-colors px-2 py-1">Út</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-3 py-4">
+
+        <!-- ---- SPAR (Predictions) ---- -->
+        <section id="sec-spar" class="section">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-black">Spár mínar</h2>
+                <div class="bg-glass-dark rounded-lg px-3 py-1 text-sm">
+                    Stig: <span id="my-points" class="accent-cyan font-bold">0</span>
+                    <span class="text-gray-500 ml-1">/ <span id="my-correct">0</span> rétt</span>
+                </div>
+            </div>
+            <div id="spar-container"></div>
+        </section>
+
+        <!-- ---- STIGATAFLA (Leaderboard) ---- -->
+        <section id="sec-stigatafla" class="section hidden">
+            <h2 class="text-xl font-black mb-4">Stigatafla</h2>
+            <div id="lb-container"></div>
+        </section>
+
+        <!-- ---- DAGSKRA (Schedule) ---- -->
+        <section id="sec-dagskra" class="section hidden">
+            <h2 class="text-xl font-black mb-4">Dagskrá</h2>
+            <div id="dag-container"></div>
+        </section>
+
+        <!-- ---- STJORNBORD (Admin) ---- -->
+        <section id="sec-stjorn" class="section hidden">
+            <h2 class="text-xl font-black mb-4">Stjórnborð</h2>
+            <!-- PIN gate -->
+            <div id="pin-gate" class="max-w-xs mx-auto text-center">
+                <div class="bg-glass rounded-xl p-8 mb-4">
+                    <div class="text-3xl mb-3">🔐</div>
+                    <p class="text-gray-400 text-sm mb-4">Sláðu inn 4 stafa PIN-númer stjórnanda</p>
+                    <input id="admin-pin-input" type="password" inputmode="numeric" maxlength="4"
+                        class="input-field text-center text-xl tracking-widest mb-3" placeholder="····"
+                        oninput="if(this.value.length===4) verifyPin()">
+                    <p id="pin-error" class="text-red-400 text-xs hidden">Rangt PIN-númer</p>
+                </div>
+            </div>
+            <!-- Admin panel (shown after PIN) -->
+            <div id="admin-panel" class="hidden">
+                <div id="admin-container"></div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// Búðu til verkefni á https://supabase.com og fylltu inn:
+// ============================================================
+const SUPABASE_URL      = 'YOUR_SUPABASE_URL';       // t.d. https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';  // úr Project Settings > API
+
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// TOURNAMENT DATA
+// ============================================================
+
+const POINTS = {
+    group: 1, r32: 2, qf: 3, sf: 4, third: 5, final: 5
+};
+
+const GROUP_STAGE = [
+    // Group A
+    {id:'A1', g:'A', home:'Mexíkó',       away:'Jamaíka',       date:'Jun 11', round:'group'},
+    {id:'A2', g:'A', home:'Pólland',      away:'Ástralía',      date:'Jun 12', round:'group'},
+    {id:'A3', g:'A', home:'Mexíkó',       away:'Pólland',       date:'Jun 17', round:'group'},
+    {id:'A4', g:'A', home:'Jamaíka',      away:'Ástralía',      date:'Jun 17', round:'group'},
+    {id:'A5', g:'A', home:'Ástralía',     away:'Mexíkó',        date:'Jun 22', round:'group'},
+    {id:'A6', g:'A', home:'Jamaíka',      away:'Pólland',       date:'Jun 22', round:'group'},
+    // Group B
+    {id:'B1', g:'B', home:'BNA',          away:'Panama',        date:'Jun 12', round:'group'},
+    {id:'B2', g:'B', home:'Marokkó',      away:'Japan',         date:'Jun 13', round:'group'},
+    {id:'B3', g:'B', home:'BNA',          away:'Marokkó',       date:'Jun 18', round:'group'},
+    {id:'B4', g:'B', home:'Panama',       away:'Japan',         date:'Jun 18', round:'group'},
+    {id:'B5', g:'B', home:'Japan',        away:'BNA',           date:'Jun 23', round:'group'},
+    {id:'B6', g:'B', home:'Panama',       away:'Marokkó',       date:'Jun 23', round:'group'},
+    // Group C
+    {id:'C1', g:'C', home:'Kanada',       away:'Hondúras',      date:'Jun 12', round:'group'},
+    {id:'C2', g:'C', home:'Portúgal',     away:'Suður-Kórea',   date:'Jun 13', round:'group'},
+    {id:'C3', g:'C', home:'Kanada',       away:'Portúgal',      date:'Jun 18', round:'group'},
+    {id:'C4', g:'C', home:'Hondúras',     away:'Suður-Kórea',   date:'Jun 18', round:'group'},
+    {id:'C5', g:'C', home:'Suður-Kórea',  away:'Kanada',        date:'Jun 23', round:'group'},
+    {id:'C6', g:'C', home:'Hondúras',     away:'Portúgal',      date:'Jun 23', round:'group'},
+    // Group D
+    {id:'D1', g:'D', home:'Argentína',    away:'Bólivía',       date:'Jun 13', round:'group'},
+    {id:'D2', g:'D', home:'Nígería',      away:'Ungverjaland',  date:'Jun 14', round:'group'},
+    {id:'D3', g:'D', home:'Argentína',    away:'Nígería',       date:'Jun 19', round:'group'},
+    {id:'D4', g:'D', home:'Bólivía',      away:'Ungverjaland',  date:'Jun 19', round:'group'},
+    {id:'D5', g:'D', home:'Ungverjaland', away:'Argentína',     date:'Jun 24', round:'group'},
+    {id:'D6', g:'D', home:'Bólivía',      away:'Nígería',       date:'Jun 24', round:'group'},
+    // Group E
+    {id:'E1', g:'E', home:'Brasilía',     away:'Trínidad og Tóbagó', date:'Jun 13', round:'group'},
+    {id:'E2', g:'E', home:'Danmörk',      away:'Íran',          date:'Jun 14', round:'group'},
+    {id:'E3', g:'E', home:'Brasilía',     away:'Danmörk',       date:'Jun 19', round:'group'},
+    {id:'E4', g:'E', home:'Trínidad og Tóbagó', away:'Íran',   date:'Jun 19', round:'group'},
+    {id:'E5', g:'E', home:'Íran',         away:'Brasilía',      date:'Jun 24', round:'group'},
+    {id:'E6', g:'E', home:'Trínidad og Tóbagó', away:'Danmörk', date:'Jun 24', round:'group'},
+    // Group F
+    {id:'F1', g:'F', home:'Kólumbía',     away:'Kostaríka',     date:'Jun 14', round:'group'},
+    {id:'F2', g:'F', home:'Spánn',        away:'Alsír',         date:'Jun 15', round:'group'},
+    {id:'F3', g:'F', home:'Kólumbía',     away:'Spánn',         date:'Jun 20', round:'group'},
+    {id:'F4', g:'F', home:'Kostaríka',    away:'Alsír',         date:'Jun 20', round:'group'},
+    {id:'F5', g:'F', home:'Alsír',        away:'Kólumbía',      date:'Jun 25', round:'group'},
+    {id:'F6', g:'F', home:'Kostaríka',    away:'Spánn',         date:'Jun 25', round:'group'},
+    // Group G
+    {id:'G1', g:'G', home:'Úrúgvæ',      away:'El Salvador',   date:'Jun 14', round:'group'},
+    {id:'G2', g:'G', home:'England',      away:'Senegal',       date:'Jun 15', round:'group'},
+    {id:'G3', g:'G', home:'Úrúgvæ',      away:'England',       date:'Jun 20', round:'group'},
+    {id:'G4', g:'G', home:'El Salvador',  away:'Senegal',       date:'Jun 20', round:'group'},
+    {id:'G5', g:'G', home:'Senegal',      away:'Úrúgvæ',        date:'Jun 25', round:'group'},
+    {id:'G6', g:'G', home:'El Salvador',  away:'England',       date:'Jun 25', round:'group'},
+    // Group H
+    {id:'H1', g:'H', home:'Ekvador',      away:'Nýja-Sjáland',  date:'Jun 15', round:'group'},
+    {id:'H2', g:'H', home:'Frakkland',    away:'Sádi-Arabía',   date:'Jun 16', round:'group'},
+    {id:'H3', g:'H', home:'Ekvador',      away:'Frakkland',     date:'Jun 21', round:'group'},
+    {id:'H4', g:'H', home:'Nýja-Sjáland', away:'Sádi-Arabía',  date:'Jun 21', round:'group'},
+    {id:'H5', g:'H', home:'Sádi-Arabía',  away:'Ekvador',       date:'Jun 26', round:'group'},
+    {id:'H6', g:'H', home:'Nýja-Sjáland', away:'Frakkland',    date:'Jun 26', round:'group'},
+    // Group I
+    {id:'I1', g:'I', home:'Venesúela',    away:'Úsbekistan',    date:'Jun 15', round:'group'},
+    {id:'I2', g:'I', home:'Þýskaland',    away:'Kamerún',       date:'Jun 16', round:'group'},
+    {id:'I3', g:'I', home:'Venesúela',    away:'Þýskaland',     date:'Jun 21', round:'group'},
+    {id:'I4', g:'I', home:'Úsbekistan',   away:'Kamerún',       date:'Jun 21', round:'group'},
+    {id:'I5', g:'I', home:'Kamerún',      away:'Venesúela',     date:'Jun 26', round:'group'},
+    {id:'I6', g:'I', home:'Úsbekistan',   away:'Þýskaland',     date:'Jun 26', round:'group'},
+    // Group J
+    {id:'J1', g:'J', home:'Síle',         away:'Indónesía',     date:'Jun 16', round:'group'},
+    {id:'J2', g:'J', home:'Holland',      away:'Fílabeinsströndin', date:'Jun 17', round:'group'},
+    {id:'J3', g:'J', home:'Síle',         away:'Holland',       date:'Jun 22', round:'group'},
+    {id:'J4', g:'J', home:'Indónesía',    away:'Fílabeinsströndin', date:'Jun 22', round:'group'},
+    {id:'J5', g:'J', home:'Fílabeinsströndin', away:'Síle',    date:'Jun 27', round:'group'},
+    {id:'J6', g:'J', home:'Indónesía',    away:'Holland',       date:'Jun 27', round:'group'},
+    // Group K
+    {id:'K1', g:'K', home:'Paragvæ',      away:'Óman',          date:'Jun 16', round:'group'},
+    {id:'K2', g:'K', home:'Sviss',        away:'Túnis',         date:'Jun 17', round:'group'},
+    {id:'K3', g:'K', home:'Paragvæ',      away:'Sviss',         date:'Jun 22', round:'group'},
+    {id:'K4', g:'K', home:'Óman',         away:'Túnis',         date:'Jun 22', round:'group'},
+    {id:'K5', g:'K', home:'Túnis',        away:'Paragvæ',       date:'Jun 27', round:'group'},
+    {id:'K6', g:'K', home:'Óman',         away:'Sviss',         date:'Jun 27', round:'group'},
+    // Group L
+    {id:'L1', g:'L', home:'Perú',         away:'Serbía',        date:'Jun 17', round:'group'},
+    {id:'L2', g:'L', home:'Belgía',       away:'Gana',          date:'Jun 17', round:'group'},
+    {id:'L3', g:'L', home:'Perú',         away:'Belgía',        date:'Jun 23', round:'group'},
+    {id:'L4', g:'L', home:'Serbía',       away:'Gana',          date:'Jun 23', round:'group'},
+    {id:'L5', g:'L', home:'Gana',         away:'Perú',          date:'Jun 27', round:'group'},
+    {id:'L6', g:'L', home:'Serbía',       away:'Belgía',        date:'Jun 27', round:'group'},
+];
+
+const KNOCKOUT_STAGE = [
+    {id:'R1',  g:'R32', home:'TBD', away:'TBD', date:'Jún 29', round:'r32'},
+    {id:'R2',  g:'R32', home:'TBD', away:'TBD', date:'Jún 29', round:'r32'},
+    {id:'R3',  g:'R32', home:'TBD', away:'TBD', date:'Jún 30', round:'r32'},
+    {id:'R4',  g:'R32', home:'TBD', away:'TBD', date:'Jún 30', round:'r32'},
+    {id:'R5',  g:'R32', home:'TBD', away:'TBD', date:'Júl 1',  round:'r32'},
+    {id:'R6',  g:'R32', home:'TBD', away:'TBD', date:'Júl 1',  round:'r32'},
+    {id:'R7',  g:'R32', home:'TBD', away:'TBD', date:'Júl 2',  round:'r32'},
+    {id:'R8',  g:'R32', home:'TBD', away:'TBD', date:'Júl 2',  round:'r32'},
+    {id:'R9',  g:'R32', home:'TBD', away:'TBD', date:'Júl 3',  round:'r32'},
+    {id:'R10', g:'R32', home:'TBD', away:'TBD', date:'Júl 3',  round:'r32'},
+    {id:'R11', g:'R32', home:'TBD', away:'TBD', date:'Júl 4',  round:'r32'},
+    {id:'R12', g:'R32', home:'TBD', away:'TBD', date:'Júl 4',  round:'r32'},
+    {id:'R13', g:'R32', home:'TBD', away:'TBD', date:'Júl 4',  round:'r32'},
+    {id:'R14', g:'R32', home:'TBD', away:'TBD', date:'Júl 4',  round:'r32'},
+    {id:'R15', g:'R32', home:'TBD', away:'TBD', date:'Júl 4',  round:'r32'},
+    {id:'R16', g:'R32', home:'TBD', away:'TBD', date:'Júl 4',  round:'r32'},
+    {id:'QF1', g:'QF', home:'TBD', away:'TBD', date:'Júl 7',  round:'qf'},
+    {id:'QF2', g:'QF', home:'TBD', away:'TBD', date:'Júl 7',  round:'qf'},
+    {id:'QF3', g:'QF', home:'TBD', away:'TBD', date:'Júl 8',  round:'qf'},
+    {id:'QF4', g:'QF', home:'TBD', away:'TBD', date:'Júl 8',  round:'qf'},
+    {id:'QF5', g:'QF', home:'TBD', away:'TBD', date:'Júl 9',  round:'qf'},
+    {id:'QF6', g:'QF', home:'TBD', away:'TBD', date:'Júl 9',  round:'qf'},
+    {id:'QF7', g:'QF', home:'TBD', away:'TBD', date:'Júl 9',  round:'qf'},
+    {id:'QF8', g:'QF', home:'TBD', away:'TBD', date:'Júl 9',  round:'qf'},
+    {id:'SF1', g:'SF', home:'TBD', away:'TBD', date:'Júl 14', round:'sf'},
+    {id:'SF2', g:'SF', home:'TBD', away:'TBD', date:'Júl 14', round:'sf'},
+    {id:'SF3', g:'SF', home:'TBD', away:'TBD', date:'Júl 15', round:'sf'},
+    {id:'SF4', g:'SF', home:'TBD', away:'TBD', date:'Júl 15', round:'sf'},
+    {id:'3RD', g:'3PL', home:'TBD', away:'TBD', date:'Júl 18', round:'third'},
+    {id:'FIN', g:'FIN', home:'TBD', away:'TBD', date:'Júl 19', round:'final'},
+];
+
+const ALL_MATCHES = [...GROUP_STAGE, ...KNOCKOUT_STAGE];
+const MATCH_MAP = {};
+ALL_MATCHES.forEach(m => { MATCH_MAP[m.id] = m; });
+
+const GROUP_LABELS = {
+    A:'Hópur A', B:'Hópur B', C:'Hópur C', D:'Hópur D',
+    E:'Hópur E', F:'Hópur F', G:'Hópur G', H:'Hópur H',
+    I:'Hópur I', J:'Hópur J', K:'Hópur K', L:'Hópur L',
+    R32:'Leikir 32 bestu', QF:'Fjórðungsúrslitaleikir', SF:'Undanúrslitaleikir',
+    '3PL':'Leikur um 3. sæti', FIN:'Úrslitaleikurinn',
+};
+
+const GROUP_ORDER = ['A','B','C','D','E','F','G','H','I','J','K','L','R32','QF','SF','3PL','FIN'];
+
+// ============================================================
+// SESSION (localStorage - tækjasértækt)
+// ============================================================
+
+function getCurrentUser() {
+    try { return JSON.parse(localStorage.getItem('wc2026_user') || 'null'); } catch { return null; }
+}
+function saveUser(d) { localStorage.setItem('wc2026_user', JSON.stringify(d)); }
+
+// ============================================================
+// SUPABASE DATA LAYER
+// ============================================================
+
+async function dbGetLeague(code) {
+    const { data } = await sb.from('leagues').select('*').eq('code', code).maybeSingle();
+    return data;
+}
+
+async function dbGetMembers(leagueCode) {
+    const { data } = await sb.from('members').select('*').eq('league_code', leagueCode).order('created_at');
+    return data || [];
+}
+
+async function dbGetMyPredictions(userId) {
+    const { data } = await sb.from('predictions').select('match_id, prediction').eq('user_id', userId);
+    const result = {};
+    (data || []).forEach(p => { result[p.match_id] = p.prediction; });
+    return result;
+}
+
+async function dbGetAllPredictions(leagueCode) {
+    const members = await dbGetMembers(leagueCode);
+    const ids = members.map(m => m.id);
+    if (!ids.length) return { members, byUser: {} };
+    const { data } = await sb.from('predictions').select('user_id, match_id, prediction').in('user_id', ids);
+    const byUser = {};
+    (data || []).forEach(p => {
+        if (!byUser[p.user_id]) byUser[p.user_id] = {};
+        byUser[p.user_id][p.match_id] = p.prediction;
+    });
+    return { members, byUser };
+}
+
+async function dbGetResults() {
+    const { data } = await sb.from('results').select('match_id, result');
+    const r = {};
+    (data || []).forEach(row => { r[row.match_id] = row.result; });
+    return r;
+}
+
+async function dbGetKnockoutTeams() {
+    const { data } = await sb.from('knockout_teams').select('*');
+    (data || []).forEach(t => {
+        const m = MATCH_MAP[t.match_id];
+        if (m) { m.home = t.home; m.away = t.away; }
+    });
+}
+
+async function dbUpsertPrediction(userId, matchId, prediction) {
+    await sb.from('predictions').upsert({ user_id: userId, match_id: matchId, prediction, updated_at: new Date().toISOString() });
+}
+
+async function dbDeletePrediction(userId, matchId) {
+    await sb.from('predictions').delete().eq('user_id', userId).eq('match_id', matchId);
+}
+
+async function dbUpsertResult(matchId, result) {
+    await sb.from('results').upsert({ match_id: matchId, result, updated_at: new Date().toISOString() });
+}
+
+async function dbDeleteResult(matchId) {
+    await sb.from('results').delete().eq('match_id', matchId);
+}
+
+async function dbUpsertKnockoutTeam(matchId, side, val) {
+    const current = MATCH_MAP[matchId];
+    const home = side === 'home' ? (val || 'TBD') : current.home;
+    const away = side === 'away' ? (val || 'TBD') : current.away;
+    await sb.from('knockout_teams').upsert({ match_id: matchId, home, away });
+    current[side] = val || 'TBD';
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function genCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+    return code;
+}
+
+function genId() {
+    return Math.random().toString(36).substr(2,9);
+}
+
+function showToast(msg, dur=2500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function loadingHtml(msg='Hleður...') {
+    return `<div class="text-center py-12 text-gray-500"><span class="spinner"></span>${msg}</div>`;
+}
+
+let _createdCode = '';
+
+// ============================================================
+// VIEW ROUTING
+// ============================================================
+
+function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const map = { login:'login', create:'create', join:'join', app:'app' };
+    document.getElementById('view-' + (map[name] || 'login')).classList.add('active');
+}
+
+async function showApp() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-app').classList.add('active');
+    const user = getCurrentUser();
+    if (!user) return;
+    await dbGetKnockoutTeams();
+    const league = await dbGetLeague(user.leagueCode);
+    document.getElementById('hdr-league').textContent = league ? league.name : '';
+    document.getElementById('hdr-user').textContent = user.name;
+    showSection('spar');
+}
+
+function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.getElementById('sec-' + name).classList.remove('hidden');
+    document.getElementById('nav-' + name).classList.add('active');
+    if (name === 'spar') renderSpar();
+    if (name === 'stigatafla') renderStigatafla();
+    if (name === 'dagskra') renderDagskra();
+    if (name === 'stjorn') renderStjorn();
+}
+
+// ============================================================
+// AUTH FLOWS
+// ============================================================
+
+async function createLeague() {
+    const lname = document.getElementById('c-league-name').value.trim();
+    const uname = document.getElementById('c-user-name').value.trim();
+    const pin   = document.getElementById('c-pin').value.trim();
+    if (!lname) { showToast('Sláðu inn nafn deildar'); return; }
+    if (!uname) { showToast('Sláðu inn nafn þitt'); return; }
+    if (!/^\d{4}$/.test(pin)) { showToast('PIN verður að vera 4 tölustafir'); return; }
+
+    const btn = document.getElementById('create-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Bý til...';
+
+    try {
+        // Generate unique code
+        let code;
+        let attempts = 0;
+        do {
+            code = genCode();
+            const existing = await dbGetLeague(code);
+            if (!existing) break;
+            attempts++;
+        } while (attempts < 10);
+
+        const userId = genId();
+
+        const { error: le } = await sb.from('leagues').insert({ code, name: lname, admin_pin: pin });
+        if (le) throw le;
+        const { error: me } = await sb.from('members').insert({ id: userId, league_code: code, name: uname });
+        if (me) throw me;
+
+        saveUser({ userId, name: uname, leagueCode: code, isAdmin: true });
+
+        _createdCode = code;
+        document.getElementById('show-code').textContent = code;
+        document.getElementById('create-form').classList.add('hidden');
+        document.getElementById('create-success').classList.remove('hidden');
+    } catch (err) {
+        showToast('Villa við stofnun deildar');
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Búa til';
+    }
+}
+
+function copyCode() {
+    navigator.clipboard.writeText(_createdCode).then(() => showToast('Kóði afritaður!')).catch(() => showToast(_createdCode));
+}
+
+async function proceedToApp() {
+    await showApp();
+}
+
+async function joinLeague() {
+    const code  = document.getElementById('j-code').value.trim().toUpperCase();
+    const uname = document.getElementById('j-user-name').value.trim();
+    const errEl = document.getElementById('join-error');
+    errEl.classList.add('hidden');
+    if (!code || code.length !== 6) { errEl.textContent='Ógildur kóði'; errEl.classList.remove('hidden'); return; }
+    if (!uname) { errEl.textContent='Sláðu inn nafn þitt'; errEl.classList.remove('hidden'); return; }
+
+    const btn = document.getElementById('join-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Leita...';
+
+    try {
+        const league = await dbGetLeague(code);
+        if (!league) {
+            errEl.textContent = 'Deild finnst ekki með þessum kóða';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        const userId = genId();
+        const { error } = await sb.from('members').insert({ id: userId, league_code: code, name: uname });
+        if (error) throw error;
+
+        saveUser({ userId, name: uname, leagueCode: code, isAdmin: false });
+        await showApp();
+    } catch (err) {
+        errEl.textContent = 'Villa við innskráningu';
+        errEl.classList.remove('hidden');
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ganga í';
+    }
+}
+
+function logout() {
+    saveUser(null);
+    sessionStorage.removeItem('wc2026_admin_ok');
+    document.getElementById('create-form').classList.remove('hidden');
+    document.getElementById('create-success').classList.add('hidden');
+    document.getElementById('c-league-name').value='';
+    document.getElementById('c-user-name').value='';
+    document.getElementById('c-pin').value='';
+    document.getElementById('j-code').value='';
+    document.getElementById('j-user-name').value='';
+    showView('login');
+}
+
+// ============================================================
+// PREDICTIONS (SPÁR)
+// ============================================================
+
+async function renderSpar() {
+    const user = getCurrentUser();
+    if (!user) return;
+    const container = document.getElementById('spar-container');
+    container.innerHTML = loadingHtml('Hleður spám...');
+
+    const [myPreds, results] = await Promise.all([
+        dbGetMyPredictions(user.userId),
+        dbGetResults()
+    ]);
+
+    let pts = 0, correct = 0;
+    ALL_MATCHES.forEach(m => {
+        const p = myPreds[m.id];
+        const r = results[m.id];
+        if (p && r && p === r) {
+            pts += POINTS[m.round] || 1;
+            correct++;
+        }
+    });
+    document.getElementById('my-points').textContent = pts;
+    document.getElementById('my-correct').textContent = correct;
+
+    const groups = {};
+    ALL_MATCHES.forEach(m => {
+        if (!groups[m.g]) groups[m.g] = [];
+        groups[m.g].push(m);
+    });
+
+    let html = '';
+    GROUP_ORDER.forEach(gk => {
+        if (!groups[gk]) return;
+        html += `<div class="bg-glass rounded-xl mb-3 overflow-hidden">
+            <div class="group-header">${GROUP_LABELS[gk]}</div>`;
+        groups[gk].forEach(m => {
+            const p = myPreds[m.id];
+            const r = results[m.id];
+            const done = !!r;
+            const correct_pred = done && p && p === r;
+            const wrong_pred = done && p && p !== r;
+            const rowClass = correct_pred ? 'result-correct' : wrong_pred ? 'result-wrong' : '';
+            html += `<div class="match-card ${rowClass}">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs text-gray-500 mb-0.5">${m.date} · ${m.id}</div>
+                        <div class="flex items-center gap-1 text-sm">
+                            <span class="font-semibold truncate">${m.home}</span>
+                            <span class="text-gray-600 flex-shrink-0">vs</span>
+                            <span class="font-semibold truncate">${m.away}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 flex-shrink-0">
+                        ${done ? `<span class="text-xs text-gray-500 mr-1">Niðurstaða: <strong class="${correct_pred?'text-green-400':'text-red-400'}">${r}</strong></span>` : ''}
+                        <button class="pred-btn${p==='1'?' selected-1':''}" onclick="setPred('${m.id}','1')">1</button>
+                        <button class="pred-btn${p==='X'?' selected-X':''}" onclick="setPred('${m.id}','X')">X</button>
+                        <button class="pred-btn${p==='2'?' selected-2':''}" onclick="setPred('${m.id}','2')">2</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+async function setPred(matchId, val) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    // Optimistic UI: update button immediately
+    document.querySelectorAll(`[onclick*="'${matchId}'"]`).forEach(btn => {
+        btn.classList.remove('selected-1','selected-X','selected-2');
+    });
+
+    const currentPreds = await dbGetMyPredictions(user.userId);
+    if (currentPreds[matchId] === val) {
+        await dbDeletePrediction(user.userId, matchId);
+    } else {
+        await dbUpsertPrediction(user.userId, matchId, val);
+    }
+    renderSpar();
+}
+
+// ============================================================
+// LEADERBOARD (STIGATAFLA)
+// ============================================================
+
+async function renderStigatafla() {
+    const user = getCurrentUser();
+    if (!user) return;
+    const container = document.getElementById('lb-container');
+    container.innerHTML = loadingHtml('Hleður stigatöflu...');
+
+    const [{ members, byUser }, results] = await Promise.all([
+        dbGetAllPredictions(user.leagueCode),
+        dbGetResults()
+    ]);
+
+    if (!Object.keys(results).length) {
+        container.innerHTML = `<div class="bg-glass rounded-xl p-8 text-center text-gray-500">
+            <div class="text-4xl mb-3">📊</div>
+            <p>Engin niðurstaða ennþá</p>
+            <p class="text-xs mt-1">Stigataflan mun birtast þegar fyrstu niðurstöður hafa verið skráðar</p>
+        </div>`;
+        return;
+    }
+
+    const scores = members.map(member => {
+        const myPreds = byUser[member.id] || {};
+        let pts = 0, corr = 0;
+        ALL_MATCHES.forEach(m => {
+            const p = myPreds[m.id];
+            const r = results[m.id];
+            if (p && r && p === r) { pts += POINTS[m.round] || 1; corr++; }
+        });
+        return { ...member, pts, corr };
+    });
+    scores.sort((a,b) => b.pts - a.pts || b.corr - a.corr);
+
+    let html = `<div class="bg-glass rounded-xl overflow-hidden">
+        <div class="px-4 py-3 border-b border-cyan-900/30">
+            <div class="grid grid-cols-12 text-xs text-gray-500 font-semibold uppercase tracking-wider">
+                <div class="col-span-1">#</div>
+                <div class="col-span-6">Nafn</div>
+                <div class="col-span-3 text-right">Stig</div>
+                <div class="col-span-2 text-right">Rétt</div>
+            </div>
+        </div>`;
+    scores.forEach((s, i) => {
+        const isMe = s.id === user.userId;
+        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        html += `<div class="lb-row grid grid-cols-12 px-4 py-3 text-sm ${isMe?'me':''}">
+            <div class="col-span-1 text-gray-500">${medal||i+1}</div>
+            <div class="col-span-6 font-semibold ${isMe?'accent-cyan':''}">${s.name}${isMe?' <span class="text-xs opacity-60">(þú)</span>':''}</div>
+            <div class="col-span-3 text-right font-black text-lg ${isMe?'accent-cyan':''}">${s.pts}</div>
+            <div class="col-span-2 text-right text-gray-400">${s.corr}</div>
+        </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// ============================================================
+// SCHEDULE (DAGSKRÁ)
+// ============================================================
+
+async function renderDagskra() {
+    const user = getCurrentUser();
+    if (!user) return;
+    const container = document.getElementById('dag-container');
+    container.innerHTML = loadingHtml('Hleður dagskrá...');
+
+    const [myPreds, results] = await Promise.all([
+        dbGetMyPredictions(user.userId),
+        dbGetResults()
+    ]);
+
+    const groups = {};
+    ALL_MATCHES.forEach(m => {
+        if (!groups[m.g]) groups[m.g] = [];
+        groups[m.g].push(m);
+    });
+
+    let html = '';
+    GROUP_ORDER.forEach(gk => {
+        if (!groups[gk]) return;
+        html += `<div class="bg-glass rounded-xl mb-3 overflow-hidden">
+            <div class="group-header">${GROUP_LABELS[gk]}</div>`;
+        groups[gk].forEach(m => {
+            const r = results[m.id];
+            const p = myPreds[m.id];
+            const finished = !!r;
+            const correct_pred = finished && p && p === r;
+            const wrong_pred = finished && p && p !== r;
+            const rowClass = correct_pred ? 'result-correct' : wrong_pred ? 'result-wrong' : '';
+            const resultBadge = finished
+                ? `<span class="text-xs font-black px-2 py-0.5 rounded" style="background:rgba(0,255,100,0.12);color:#00ff64;border:1px solid rgba(0,255,100,0.3)">${r}</span>`
+                : '';
+            const predBadge = p ? `<span class="pred-badge pred-badge-${p}">${p}</span>` : '';
+
+            html += `<div class="match-card ${rowClass}">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs text-gray-500 mb-0.5">${m.date} · ${m.id}</div>
+                        <div class="flex items-center gap-1.5 text-sm flex-wrap">
+                            <span class="font-semibold">${m.home}</span>
+                            <span class="text-gray-600">–</span>
+                            <span class="font-semibold">${m.away}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        ${predBadge}
+                        ${resultBadge}
+                        ${correct_pred ? '<span class="text-green-400 text-xs">✓</span>' : ''}
+                        ${wrong_pred   ? '<span class="text-red-400 text-xs">✗</span>'   : ''}
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+
+// ============================================================
+// ADMIN (STJÓRNBORÐ)
+// ============================================================
+
+let adminUnlocked = false;
+
+async function renderStjorn() {
+    adminUnlocked = sessionStorage.getItem('wc2026_admin_ok') === '1';
+    document.getElementById('pin-gate').classList.toggle('hidden', adminUnlocked);
+    document.getElementById('admin-panel').classList.toggle('hidden', !adminUnlocked);
+    document.getElementById('admin-pin-input').value = '';
+    document.getElementById('pin-error').classList.add('hidden');
+    if (adminUnlocked) await renderAdminPanel();
+}
+
+async function verifyPin() {
+    const user = getCurrentUser();
+    if (!user) return;
+    const entered = document.getElementById('admin-pin-input').value;
+    if (entered.length < 4) return;
+
+    const league = await dbGetLeague(user.leagueCode);
+    if (!league) return;
+
+    if (entered === league.admin_pin) {
+        sessionStorage.setItem('wc2026_admin_ok', '1');
+        adminUnlocked = true;
+        document.getElementById('pin-gate').classList.add('hidden');
+        document.getElementById('admin-panel').classList.remove('hidden');
+        document.getElementById('pin-error').classList.add('hidden');
+        await renderAdminPanel();
+    } else {
+        document.getElementById('pin-error').classList.remove('hidden');
+        document.getElementById('admin-pin-input').value = '';
+    }
+}
+
+async function renderAdminPanel() {
+    const container = document.getElementById('admin-container');
+    container.innerHTML = loadingHtml('Hleður stjórnborð...');
+
+    const results = await dbGetResults();
+
+    const groups = {};
+    ALL_MATCHES.forEach(m => {
+        if (!groups[m.g]) groups[m.g] = [];
+        groups[m.g].push(m);
+    });
+
+    let html = `<div class="bg-glass-dark rounded-lg p-3 mb-4 text-xs text-gray-400">
+        <span class="accent-cyan font-bold">Stigakerfi:</span>
+        Hópar = 1 stig · 16-liða úrslitaleikir = 2 · Fjórðungsúrslit = 3 · Undanúrslit = 4 · Úrslit/3. sæti = 5
+    </div>`;
+
+    GROUP_ORDER.forEach(gk => {
+        if (!groups[gk]) return;
+        html += `<div class="bg-glass rounded-xl mb-3 overflow-hidden">
+            <div class="group-header">${GROUP_LABELS[gk]}</div>`;
+        groups[gk].forEach(m => {
+            const r = results[m.id];
+            const isKnockout = m.round !== 'group';
+            let teamDisplay = '';
+            if (isKnockout) {
+                teamDisplay = `<div class="flex gap-2 mb-2">
+                    <input class="input-field text-xs py-1 px-2" style="flex:1"
+                        id="kh-${m.id}" value="${m.home==='TBD'?'':m.home}" placeholder="Heimalið"
+                        onchange="updateKnockoutTeam('${m.id}','home',this.value)">
+                    <input class="input-field text-xs py-1 px-2" style="flex:1"
+                        id="ka-${m.id}" value="${m.away==='TBD'?'':m.away}" placeholder="Útilið"
+                        onchange="updateKnockoutTeam('${m.id}','away',this.value)">
+                </div>`;
+            }
+            html += `<div class="match-card">
+                <div class="text-xs text-gray-500 mb-1">${m.date} · ${m.id}</div>
+                ${teamDisplay}
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm font-semibold truncate flex-1">${m.home} <span class="text-gray-600">vs</span> ${m.away}</span>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <button class="res-btn${r==='1'?' set':''}" onclick="setResult('${m.id}','1')">1</button>
+                        <button class="res-btn${r==='X'?' set':''}" onclick="setResult('${m.id}','X')">X</button>
+                        <button class="res-btn${r==='2'?' set':''}" onclick="setResult('${m.id}','2')">2</button>
+                        ${r ? `<button class="res-btn" style="color:#ff6666;border-color:#ff4444" onclick="clearResult('${m.id}')">✕</button>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+
+async function setResult(matchId, val) {
+    await dbUpsertResult(matchId, val);
+    await renderAdminPanel();
+    showToast(`Niðurstaða ${matchId} skráð: ${val}`);
+}
+
+async function clearResult(matchId) {
+    await dbDeleteResult(matchId);
+    await renderAdminPanel();
+    showToast(`Niðurstaða ${matchId} hreinsuð`);
+}
+
+async function updateKnockoutTeam(matchId, side, val) {
+    await dbUpsertKnockoutTeam(matchId, side, val);
+}
+
+// ============================================================
+// APP INIT
+// ============================================================
+
+async function init() {
+    // Warn if Supabase not configured
+    if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+        document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center">
+            <div>
+                <div style="font-size:3rem;margin-bottom:1rem">⚙️</div>
+                <h2 style="color:#00ffff;font-size:1.5rem;margin-bottom:0.5rem">Supabase ekki stillt</h2>
+                <p style="color:#888;max-width:400px">Opnaðu index.html og stilltu <code style="color:#00ffff">SUPABASE_URL</code> og <code style="color:#00ffff">SUPABASE_ANON_KEY</code> efst í skriptunni.<br><br>Sjá <code>supabase-setup.sql</code> og README.</p>
+            </div>
+        </div>`;
+        return;
+    }
+
+    await dbGetKnockoutTeams();
+    const user = getCurrentUser();
+    if (user && user.userId && user.leagueCode) {
+        const league = await dbGetLeague(user.leagueCode);
+        const members = await dbGetMembers(user.leagueCode);
+        if (league && members.find(m => m.id === user.userId)) {
+            document.getElementById('hdr-league').textContent = league.name;
+            document.getElementById('hdr-user').textContent = user.name;
+            showView('app');
+            showSection('spar');
+            return;
+        }
+    }
+    showView('login');
+}
+
+init();
+</script>
+</body>
+</html>
