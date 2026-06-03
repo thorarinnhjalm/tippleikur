@@ -517,7 +517,7 @@
 <div id="view-create" class="view">
     <div class="min-h-screen flex items-center justify-center px-4 py-12">
         <div class="w-full max-w-sm">
-            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
+            <button onclick="showView('chooser')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
                 ← Til baka
             </button>
             <h2 class="text-2xl font-black accent-cyan mb-6">Búa til deild</h2>
@@ -579,7 +579,7 @@
 <div id="view-join" class="view">
     <div class="min-h-screen flex items-center justify-center px-4">
         <div class="w-full max-w-sm">
-            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
+            <button onclick="showView('chooser')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
                 ← Til baka
             </button>
             <h2 class="text-2xl font-black accent-cyan mb-6">Ganga í deild</h2>
@@ -601,25 +601,24 @@
 </div>
 
 <!-- ===================== LOGIN AGAIN VIEW ===================== -->
-<div id="view-login2" class="view">
-    <div class="min-h-screen flex items-center justify-center px-4">
-        <div class="w-full max-w-sm">
-            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
-                ← Til baka
-            </button>
-            <h2 class="text-2xl font-black accent-cyan mb-6">Skrá inn aftur</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs text-gray-400 mb-1 block">Deildarstýringarkóði</label>
-                    <input id="l-code" type="text" maxlength="6" class="input-field" placeholder="XXXXXX"
-                        oninput="this.value=this.value.toUpperCase()" style="letter-spacing:0.2em; font-size:1.2rem; text-align:center">
-                </div>
-                <div>
-                    <label class="text-xs text-gray-400 mb-1 block">Nafnið þitt (eins og þú skráðir þig)</label>
-                    <input id="l-user-name" type="text" class="input-field" placeholder="Fullt nafn">
-                </div>
-                <p id="login2-error" class="text-red-400 text-sm hidden"></p>
-                <button id="login2-btn" onclick="reLogin()" class="btn-primary w-full py-3 rounded-lg">Skrá inn</button>
+<!-- ===================== AFTER AUTH CHOOSER ===================== -->
+<div id="view-chooser" class="view">
+    <div class="pitch-bg min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-sm text-center relative z-10">
+            <div class="text-5xl mb-3">⚽</div>
+            <h2 class="text-2xl font-black accent-cyan mb-2">Velkomin/n!</h2>
+            <p id="chooser-email" class="text-xs text-gray-500 mb-6"></p>
+            <p class="text-gray-400 mb-6 text-sm">Stofnaðu nýja deild eða gakktu í deild sem þegar er til.</p>
+            <div class="space-y-3">
+                <button onclick="showView('create')" class="btn-primary w-full py-3 rounded-lg glow-cyan">
+                    ⚡ Búa til deild
+                </button>
+                <button onclick="showView('join')" class="btn-secondary w-full py-3 rounded-lg">
+                    🔗 Ganga í deild
+                </button>
+                <button onclick="logout()" class="text-xs text-gray-500 hover:text-red-400 w-full py-2">
+                    Skrá út
+                </button>
             </div>
         </div>
     </div>
