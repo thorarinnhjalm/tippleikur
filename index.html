@@ -296,6 +296,32 @@
                     <label class="text-xs text-gray-400 mb-1 block">Stjórnandakóði (4 tölustafir)</label>
                     <input id="c-pin" type="password" inputmode="numeric" maxlength="4" class="input-field" placeholder="····">
                 </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-2 block">Tegund tippleiks</label>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-2 p-3 rounded-lg border border-cyan-900/40 cursor-pointer hover:border-cyan-500/60 transition-colors">
+                            <input type="radio" name="c-mode" value="standard" checked class="mt-1 accent-cyan-400">
+                            <div class="flex-1">
+                                <div class="text-sm font-semibold">1X2 (klassískt)</div>
+                                <div class="text-xs text-gray-500">Veldu 1, X eða 2. Föst stig (1/2/3/4/5)</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2 p-3 rounded-lg border border-cyan-900/40 cursor-pointer hover:border-cyan-500/60 transition-colors">
+                            <input type="radio" name="c-mode" value="exact" class="mt-1 accent-cyan-400">
+                            <div class="flex-1">
+                                <div class="text-sm font-semibold">Markatala</div>
+                                <div class="text-xs text-gray-500">Spáðu nákvæmu skori. 5/4/3/1 stig (tvöfalt í útsláttarkeppni)</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2 p-3 rounded-lg border border-cyan-900/40 cursor-pointer hover:border-cyan-500/60 transition-colors">
+                            <input type="radio" name="c-mode" value="odds" class="mt-1 accent-cyan-400">
+                            <div class="flex-1">
+                                <div class="text-sm font-semibold">Stuðlamargfaldari</div>
+                                <div class="text-xs text-gray-500">1X2 spá margfölduð með veðbankastuðli. Upset-spár gefa meira</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
                 <button id="create-btn" onclick="createLeague()" class="btn-primary w-full py-3 rounded-lg mt-2">Búa til</button>
             </div>
             <div id="create-success" class="hidden text-center">
@@ -458,9 +484,64 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // TOURNAMENT DATA
 // ============================================================
 
+// Standard 1X2 mode points
 const POINTS = {
     group: 1, r32: 2, qf: 3, sf: 4, third: 5, final: 5
 };
+
+// Markatölu-mode stigatöflur (group, knockout = 2x)
+const EXACT_POINTS = {
+    exact: 5,       // Rétt úrslit OG rétt markatala
+    outcomeAndOne: 4, // Rétt úrslit OG önnur markatala
+    outcomeOnly: 3,   // Rétt úrslit
+    oneScore: 1,    // Önnur markatalan rétt
+};
+function isKnockout(round) { return round !== 'group'; }
+
+function parseScore(s) {
+    if (!s) return null;
+    const m = String(s).match(/^(\d+)-(\d+)$/);
+    if (!m) return null;
+    return { h: parseInt(m[1]), a: parseInt(m[2]) };
+}
+function scoreToOutcome(sc) {
+    if (!sc) return null;
+    if (sc.h > sc.a) return '1';
+    if (sc.h === sc.a) return 'X';
+    return '2';
+}
+
+// Reikna stig fyrir einn leik, gefið mode/spá/niðurstöðu/stuðla
+function scoreMatch(mode, match, pred, result, odds) {
+    if (!pred || !result) return 0;
+    const base = POINTS[match.round] || 1;
+
+    if (mode === 'exact') {
+        const pSc = parseScore(pred);
+        const rSc = parseScore(result);
+        if (!pSc || !rSc) return 0;
+        const pOut = scoreToOutcome(pSc);
+        const rOut = scoreToOutcome(rSc);
+        const mult = isKnockout(match.round) ? 2 : 1;
+        if (pSc.h === rSc.h && pSc.a === rSc.a) return EXACT_POINTS.exact * mult;
+        if (pOut === rOut && (pSc.h === rSc.h || pSc.a === rSc.a)) return EXACT_POINTS.outcomeAndOne * mult;
+        if (pOut === rOut) return EXACT_POINTS.outcomeOnly * mult;
+        if (pSc.h === rSc.h || pSc.a === rSc.a) return EXACT_POINTS.oneScore * mult;
+        return 0;
+    }
+
+    // standard og odds: bæði eru 1/X/2 spá
+    if (pred !== result) return 0;
+    if (mode === 'odds' && odds) {
+        const oddKey = result === '1' ? 'odds_1' : result === 'X' ? 'odds_x' : 'odds_2';
+        const o = parseFloat(odds[oddKey] || 0);
+        if (o > 0) {
+            const cap = 10;
+            return Math.round(base * Math.min(o, cap) * 10) / 10;
+        }
+    }
+    return base;
+}
 
 const GROUP_STAGE = [
     // Group A
@@ -747,6 +828,7 @@ async function createLeague() {
     const lname = document.getElementById('c-league-name').value.trim();
     const uname = document.getElementById('c-user-name').value.trim();
     const pin   = document.getElementById('c-pin').value.trim();
+    const mode  = document.querySelector('input[name="c-mode"]:checked')?.value || 'standard';
     if (!lname) { showToast('Sláðu inn nafn deildar'); return; }
     if (!uname) { showToast('Sláðu inn nafn þitt'); return; }
     if (!/^\d{4}$/.test(pin)) { showToast('PIN verður að vera 4 tölustafir'); return; }
@@ -768,7 +850,7 @@ async function createLeague() {
 
         const userId = genId();
 
-        const { error: le } = await sb.from('leagues').insert({ code, name: lname, admin_pin: pin });
+        const { error: le } = await sb.from('leagues').insert({ code, name: lname, admin_pin: pin, scoring_mode: mode });
         if (le) throw le;
         const { error: me } = await sb.from('members').insert({ id: userId, league_code: code, name: uname });
         if (me) throw me;
