@@ -686,6 +686,11 @@ function getCurrentUser() {
 }
 function saveUser(d) { localStorage.setItem('wc2026_user', JSON.stringify(d)); }
 
+// Globals: virka deildin og stuðlar í minni
+let currentLeague = null;
+let currentOdds = {}; // { matchId: { odds_1, odds_x, odds_2, locked } }
+function getMode() { return currentLeague?.scoring_mode || 'standard'; }
+
 // ============================================================
 // SUPABASE DATA LAYER
 // ============================================================
@@ -725,6 +730,14 @@ async function dbGetResults() {
     const r = {};
     (data || []).forEach(row => { r[row.match_id] = row.result; });
     return r;
+}
+
+async function dbGetMatchOdds() {
+    const { data } = await sb.from('match_odds').select('*');
+    const result = {};
+    (data || []).forEach(o => { result[o.match_id] = o; });
+    currentOdds = result;
+    return result;
 }
 
 async function dbGetKnockoutTeams() {
@@ -802,9 +815,12 @@ async function showApp() {
     document.getElementById('view-app').classList.add('active');
     const user = getCurrentUser();
     if (!user) return;
-    await dbGetKnockoutTeams();
+    await Promise.all([dbGetKnockoutTeams(), dbGetMatchOdds()]);
     const league = await dbGetLeague(user.leagueCode);
-    document.getElementById('hdr-league').textContent = league ? league.name : '';
+    currentLeague = league;
+    const modeLabel = league?.scoring_mode === 'exact' ? ' · Markatala'
+        : league?.scoring_mode === 'odds' ? ' · Stuðlar' : '';
+    document.getElementById('hdr-league').textContent = (league ? league.name : '') + modeLabel;
     document.getElementById('hdr-user').textContent = user.name;
     showSection('spar');
 }
@@ -982,16 +998,16 @@ async function renderSpar() {
         dbGetResults()
     ]);
 
+    const mode = getMode();
     let pts = 0, correct = 0;
     ALL_MATCHES.forEach(m => {
         const p = myPreds[m.id];
         const r = results[m.id];
-        if (p && r && p === r) {
-            pts += POINTS[m.round] || 1;
-            correct++;
-        }
+        const got = scoreMatch(mode, m, p, r, currentOdds[m.id]);
+        if (got > 0) correct++;
+        pts += got;
     });
-    document.getElementById('my-points').textContent = pts;
+    document.getElementById('my-points').textContent = (Math.round(pts*10)/10);
     document.getElementById('my-correct').textContent = correct;
 
     const groups = {};
@@ -1009,13 +1025,30 @@ async function renderSpar() {
             const p = myPreds[m.id];
             const r = results[m.id];
             const done = !!r;
-            const correct_pred = done && p && p === r;
-            const wrong_pred = done && p && p !== r;
+            const got = scoreMatch(mode, m, p, r, currentOdds[m.id]);
+            const correct_pred = done && got > 0;
+            const wrong_pred = done && p && got === 0;
             const rowClass = correct_pred ? 'result-correct' : wrong_pred ? 'result-wrong' : '';
+
+            let inputHtml = '';
+            if (mode === 'exact') {
+                const sc = parseScore(p) || { h: '', a: '' };
+                inputHtml = `<input type="number" min="0" max="20" value="${sc.h}" class="input-field text-center" style="width:48px;padding:6px" id="ph-${m.id}" onchange="setExactPred('${m.id}')">
+                    <span class="text-gray-500">-</span>
+                    <input type="number" min="0" max="20" value="${sc.a}" class="input-field text-center" style="width:48px;padding:6px" id="pa-${m.id}" onchange="setExactPred('${m.id}')">`;
+            } else {
+                const od = currentOdds[m.id];
+                const showOdds = mode === 'odds' && od;
+                inputHtml = `
+                    <button class="pred-btn${p==='1'?' selected-1':''}" onclick="setPred('${m.id}','1')" title="${showOdds?'@'+(od.odds_1||'-'):''}">1${showOdds?`<div class="text-[0.55rem] opacity-70">${od.odds_1?Number(od.odds_1).toFixed(2):'-'}</div>`:''}</button>
+                    <button class="pred-btn${p==='X'?' selected-X':''}" onclick="setPred('${m.id}','X')" title="${showOdds?'@'+(od.odds_x||'-'):''}">X${showOdds?`<div class="text-[0.55rem] opacity-70">${od.odds_x?Number(od.odds_x).toFixed(2):'-'}</div>`:''}</button>
+                    <button class="pred-btn${p==='2'?' selected-2':''}" onclick="setPred('${m.id}','2')" title="${showOdds?'@'+(od.odds_2||'-'):''}">2${showOdds?`<div class="text-[0.55rem] opacity-70">${od.odds_2?Number(od.odds_2).toFixed(2):'-'}</div>`:''}</button>`;
+            }
+
             html += `<div class="match-card ${rowClass}">
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex-1 min-w-0">
-                        <div class="text-xs text-gray-500 mb-0.5">${m.date} · ${m.id}</div>
+                        <div class="text-xs text-gray-500 mb-0.5">${m.date} · ${m.id}${got>0?` · +${Math.round(got*10)/10}`:''}</div>
                         <div class="flex items-center gap-1 text-sm">
                             <span class="font-semibold truncate">${m.home}</span>
                             <span class="text-gray-600 flex-shrink-0">vs</span>
@@ -1023,10 +1056,8 @@ async function renderSpar() {
                         </div>
                     </div>
                     <div class="flex items-center gap-1 flex-shrink-0">
-                        ${done ? `<span class="text-xs text-gray-500 mr-1">Niðurstaða: <strong class="${correct_pred?'text-green-400':'text-red-400'}">${r}</strong></span>` : ''}
-                        <button class="pred-btn${p==='1'?' selected-1':''}" onclick="setPred('${m.id}','1')">1</button>
-                        <button class="pred-btn${p==='X'?' selected-X':''}" onclick="setPred('${m.id}','X')">X</button>
-                        <button class="pred-btn${p==='2'?' selected-2':''}" onclick="setPred('${m.id}','2')">2</button>
+                        ${done ? `<span class="text-xs text-gray-500 mr-1">Úrslit: <strong class="${correct_pred?'text-green-400':'text-red-400'}">${r}</strong></span>` : ''}
+                        ${inputHtml}
                     </div>
                 </div>
             </div>`;
@@ -1035,6 +1066,20 @@ async function renderSpar() {
     });
 
     container.innerHTML = html;
+}
+
+async function setExactPred(matchId) {
+    const user = getCurrentUser();
+    if (!user) return;
+    const h = document.getElementById('ph-' + matchId)?.value;
+    const a = document.getElementById('pa-' + matchId)?.value;
+    if (h === '' || a === '' || h == null || a == null) {
+        await dbDeletePrediction(user.userId, matchId);
+    } else {
+        const val = `${parseInt(h)}-${parseInt(a)}`;
+        await dbUpsertPrediction(user.userId, matchId, val);
+    }
+    renderSpar();
 }
 
 async function setPred(matchId, val) {
@@ -1330,13 +1375,16 @@ async function init() {
         return;
     }
 
-    await dbGetKnockoutTeams();
+    await Promise.all([dbGetKnockoutTeams(), dbGetMatchOdds()]);
     const user = getCurrentUser();
     if (user && user.userId && user.leagueCode) {
         const league = await dbGetLeague(user.leagueCode);
         const members = await dbGetMembers(user.leagueCode);
         if (league && members.find(m => m.id === user.userId)) {
-            document.getElementById('hdr-league').textContent = league.name;
+            currentLeague = league;
+            const modeLabel = league.scoring_mode === 'exact' ? ' · Markatala'
+                : league.scoring_mode === 'odds' ? ' · Stuðlar' : '';
+            document.getElementById('hdr-league').textContent = league.name + modeLabel;
             document.getElementById('hdr-user').textContent = user.name;
             showView('app');
             showSection('spar');
