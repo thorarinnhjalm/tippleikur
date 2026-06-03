@@ -266,6 +266,9 @@
                 <button onclick="showView('join')" class="btn-secondary w-full py-4 text-lg rounded-lg">
                     🔗 Ganga í deild
                 </button>
+                <button onclick="showView('login2')" class="text-gray-500 hover:text-cyan-400 text-sm w-full py-2">
+                    Ertu þegar með aðgang? Skrá inn aftur
+                </button>
             </div>
             <p class="mt-8 text-xs text-gray-600">Heimsbikarinn 2026 · 11. júní – 19. júlí</p>
         </div>
@@ -328,6 +331,31 @@
                 </div>
                 <p id="join-error" class="text-red-400 text-sm hidden"></p>
                 <button id="join-btn" onclick="joinLeague()" class="btn-primary w-full py-3 rounded-lg">Ganga í</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== LOGIN AGAIN VIEW ===================== -->
+<div id="view-login2" class="view">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-sm">
+            <button onclick="showView('login')" class="text-gray-500 hover:text-cyan-400 text-sm mb-6 flex items-center gap-1">
+                ← Til baka
+            </button>
+            <h2 class="text-2xl font-black accent-cyan mb-6">Skrá inn aftur</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Deildarstýringarkóði</label>
+                    <input id="l-code" type="text" maxlength="6" class="input-field" placeholder="XXXXXX"
+                        oninput="this.value=this.value.toUpperCase()" style="letter-spacing:0.2em; font-size:1.2rem; text-align:center">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nafnið þitt (eins og þú skráðir þig)</label>
+                    <input id="l-user-name" type="text" class="input-field" placeholder="Fullt nafn">
+                </div>
+                <p id="login2-error" class="text-red-400 text-sm hidden"></p>
+                <button id="login2-btn" onclick="reLogin()" class="btn-primary w-full py-3 rounded-lg">Skrá inn</button>
             </div>
         </div>
     </div>
@@ -684,7 +712,7 @@ let _createdCode = '';
 
 function showView(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    const map = { login:'login', create:'create', join:'join', app:'app' };
+    const map = { login:'login', login2:'login2', create:'create', join:'join', app:'app' };
     document.getElementById('view-' + (map[name] || 'login')).classList.add('active');
 }
 
@@ -804,6 +832,44 @@ async function joinLeague() {
     }
 }
 
+async function reLogin() {
+    const code  = document.getElementById('l-code').value.trim().toUpperCase();
+    const uname = document.getElementById('l-user-name').value.trim();
+    const errEl = document.getElementById('login2-error');
+    errEl.classList.add('hidden');
+    if (!code || code.length !== 6) { errEl.textContent='Ógildur kóði'; errEl.classList.remove('hidden'); return; }
+    if (!uname) { errEl.textContent='Sláðu inn nafn þitt'; errEl.classList.remove('hidden'); return; }
+
+    const btn = document.getElementById('login2-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Leita...';
+
+    try {
+        const league = await dbGetLeague(code);
+        if (!league) {
+            errEl.textContent = 'Deild finnst ekki með þessum kóða';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        const members = await dbGetMembers(code);
+        const me = members.find(m => m.name.toLowerCase() === uname.toLowerCase());
+        if (!me) {
+            errEl.textContent = 'Nafn finnst ekki í deildinni. Athugaðu stafsetningu eða notaðu "Ganga í deild" ef þú ert nýr.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        saveUser({ userId: me.id, name: me.name, leagueCode: code, isAdmin: false });
+        await showApp();
+    } catch (err) {
+        errEl.textContent = 'Villa við innskráningu';
+        errEl.classList.remove('hidden');
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Skrá inn';
+    }
+}
+
 function logout() {
     saveUser(null);
     sessionStorage.removeItem('wc2026_admin_ok');
@@ -814,6 +880,8 @@ function logout() {
     document.getElementById('c-pin').value='';
     document.getElementById('j-code').value='';
     document.getElementById('j-user-name').value='';
+    document.getElementById('l-code').value='';
+    document.getElementById('l-user-name').value='';
     showView('login');
 }
 
